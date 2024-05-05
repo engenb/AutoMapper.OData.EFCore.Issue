@@ -11,6 +11,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.OData;
 using Microsoft.AspNetCore.OData.Extensions;
 using Microsoft.AspNetCore.OData.Query;
+using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.OData.ModelBuilder;
@@ -24,6 +25,8 @@ public class ODataQueryOptionsTests
     private readonly IMapper _mapper;
     private readonly TestDbContext _dbContext;
 
+    private readonly SqliteConnection _connection;
+
     public ODataQueryOptionsTests()
     {
         _faker = new Faker();
@@ -31,9 +34,14 @@ public class ODataQueryOptionsTests
         _mapper = new MapperConfiguration(x => x.AddProfile<FooMaps>())
             .CreateMapper();
 
+        _connection = new SqliteConnection("Filename=:memory:");
+        _connection.Open();
+
         _dbContext = new TestDbContext(new DbContextOptionsBuilder<TestDbContext>()
-            .UseInMemoryDatabase(nameof(ODataQueryOptionsTests))
+            .UseSqlite(_connection)
             .Options);
+
+        _dbContext.Database.EnsureCreated();
     }
 
     [Fact]

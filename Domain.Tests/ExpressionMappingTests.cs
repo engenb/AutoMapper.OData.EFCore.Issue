@@ -6,22 +6,30 @@ using Domain.Enumerations;
 using FluentAssertions;
 using Microsoft.EntityFrameworkCore;
 using System.Linq.Expressions;
+using Microsoft.Data.Sqlite;
 
 namespace Domain.Tests;
 
-public class ExpressionMappingTests
+public class ExpressionMappingTests : IDisposable
 {
     private readonly IMapper _mapper;
     private readonly TestDbContext _dbContext;
+
+    private readonly SqliteConnection _connection;
 
     public ExpressionMappingTests()
     {
         _mapper = new MapperConfiguration(x => x.AddProfile<FooMaps>())
             .CreateMapper();
 
+        _connection = new SqliteConnection("Filename=:memory:");
+        _connection.Open();
+
         _dbContext = new TestDbContext(new DbContextOptionsBuilder<TestDbContext>()
-            .UseInMemoryDatabase(nameof(ExpressionMappingTests))
+            .UseSqlite(_connection)
             .Options);
+
+        _dbContext.Database.EnsureCreated();
     }
 
     [Fact]
@@ -41,4 +49,6 @@ public class ExpressionMappingTests
             .Which
             .Type.Should().HaveSameValueAs(expectedFoo.Type);
     }
+
+    public void Dispose() => _connection.Dispose();
 }
