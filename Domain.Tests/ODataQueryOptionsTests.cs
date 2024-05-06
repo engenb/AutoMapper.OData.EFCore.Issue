@@ -19,7 +19,7 @@ using Microsoft.OData.UriParser;
 
 namespace Domain.Tests;
 
-public class ODataQueryOptionsTests
+public class ODataQueryOptionsTests : IDisposable
 {
     private readonly Faker _faker;
     private readonly IMapper _mapper;
@@ -110,4 +110,6 @@ public class ODataQueryOptionsTests
         var queryContext = new ODataQueryContext(edmModel, typeof(ApiModel.Foo), new ODataPath());
         return new ODataQueryOptions<ApiModel.Foo>(queryContext, httpRequest);
     }
+
+    public void Dispose() => _connection.Dispose();
 }
